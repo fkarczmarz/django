@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Szczegóły Zadania</title>
+    <style>
+        /* Możesz przenieść powtarzające się style do osobnego pliku CSS */
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; margin: 40px; }
+        .container { width: 80%; margin: auto; background: #fff; padding: 20px; border-radius: 5px; }
+        .button {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #a9a9a9; /* Przykładowy kolor tła */
+        color: white; /* Kolor tekstu */
+        border: none; /* Brak obramowania */
+        border-radius: 5px; /* Zaokrąglone rogi */
+        text-decoration: none; /* Usunięcie podkreślenia dla linków */
+        cursor: pointer; /* Kursor wskazujący klikalność */
+        transition: background-color 0.3s; /* Animacja zmiany koloru tła */
+    }
+
+    .button:hover {
+        background-color: #909090; /* Zmiana koloru tła przy najechaniu */
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ task.title }}</h1>
+        <p>{{ task.description }}</p>
+        <p>Status: {{ task.completed|yesno:"Ukończone,Nieukończone" }}</p>
+
+        <a href="{% url 'task_edit' pk=task.pk %}" class="button">Edytuj</a>
+        <a href="{% url 'task_delete' pk=task.pk %}" class="button">Usuń</a>
+        <a href="{% url 'task_list' %}" class="button">Powrót do listy zadań</a>
+    </div>
+</body>
+</html>

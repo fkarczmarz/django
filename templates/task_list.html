@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <title>Lista Zadań</title>
+   <style>
+    body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; margin: 40px; }
+    .container { width: 80%; margin: auto; overflow: hidden; }
+
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fff;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .task-item:hover {
+        background-color: #efefef;
+    }
+
+    .task-item.completed .task-content {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+
+    .task-content {
+        flex-grow: 1;
+        cursor: pointer;
+    }
+
+    .task-actions {
+        display: flex;
+        align-items: center;
+        cursor: default;
+    }
+
+    .task-actions a {
+        padding: 5px 10px;
+        margin-right: 10px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+        cursor: pointer;
+    }
+
+    .task-actions a:hover {
+        background-color: #ddd;
+    }
+
+    .task-description {
+        display: none;
+        color: grey;
+        font-size: 0.9em;
+    }
+
+    .task-item:hover .task-description {
+        display: block;
+    }
+    .button {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #a9a9a9; /* Przykładowy kolor tła */
+        color: white; /* Kolor tekstu */
+        border: none; /* Brak obramowania */
+        border-radius: 5px; /* Zaokrąglone rogi */
+        text-decoration: none; /* Usunięcie podkreślenia dla linków */
+        cursor: pointer; /* Kursor wskazujący klikalność */
+        transition: background-color 0.3s; /* Animacja zmiany koloru tła */
+    }
+
+    .button:hover {
+        background-color: #909090; /* Zmiana koloru tła przy najechaniu */
+    }
+    .fact-container {
+        background-image: url('{% static "tlo2.png" %}');
+        background-size: cover;
+        padding: 20px;
+        border-radius: 10px;
+        color: black; /* Ustaw odpowiedni kolor tekstu */
+        text-align: center;
+        max-width: 600px;
+        margin: 40px auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Lekki cień dla głębi */
+    }
+</style>
+
+
+</head>
+<body>
+     <div class="container">
+        <h1>Lista Zadań</h1>
+     <ul>
+    {% for task in tasks %}
+        <li class="task-item {% if task.completed %}completed{% endif %}" data-task-id="{{ task.pk }}">
+            <div class="task-content" onclick="toggleCompleted({{ task.pk }})">
+                <span>{{ task.title }}</span>
+                <div class="task-description">{{ task.description }}</div>
+            </div>
+            <div class="task-actions">
+                <a href="{% url 'task_edit' pk=task.pk %}">Edytuj</a>
+                <a href="{% url 'task_delete' pk=task.pk %}">Usuń</a>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+        <a href="{% url 'task_new' %}" class="button">Dodaj Nowe Zadanie</a>
+    </div>
+
+     <div class="fact-container">
+    <p id="date-fact"></p>
+</div>
+<script>
+    function toggleCompleted(taskId) {
+        fetch(`/tasks/${taskId}/toggle_completed/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        })
+        .then(response => response.json())
+        .then(data => {
+            const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+            taskItem.classList.toggle('completed', data.completed);
+
+            // Przenoszenie ukończonego zadania na koniec listy
+            if (data.completed) {
+                taskItem.parentNode.appendChild(taskItem);
+            } else {
+                taskItem.parentNode.insertBefore(taskItem, taskItem.parentNode.firstChild);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchFactForToday();
+    });
+
+    async function fetchFactForToday() {
+        const today = new Date();
+        const month = today.getMonth() + 1; // Miesiące są od 0 do 11
+        const day = today.getDate();
+        const response = await fetch(`http://numbersapi.com/${month}/${day}/date`);
+        const fact = await response.text();
+        document.getElementById("date-fact").textContent = fact;
+    }
+</script>
+
+</body>
+</html>
